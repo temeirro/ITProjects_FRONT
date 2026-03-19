@@ -7,10 +7,19 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build artifacts
 dist
 dist-ssr
+
+# Environment variables (локальні налаштування — не комітити)
 *.local
+.env
+
+# .env.production можна комітити якщо не містить секретів
+# .env.production
 
 # Editor directories and files
 .vscode/*
