@@ -5,7 +5,6 @@ import {Route, Routes} from "react-router-dom";
 import LoginPage from "./components/auth/LoginPage.tsx";
 import RegisterPage from "./components/auth/RegisterPage.tsx";
 import DefaultHeader from "./components/containers/DefaultHeader.tsx";
-import AnimatedCursor from "react-animated-cursor";
 import MemoriesPage from "./components/memories/MemoriesPage.tsx";
 import AddMemory from "./components/memories/AddMemory.tsx";
 import {useAppSelector} from "./hooks/redux";
@@ -16,7 +15,7 @@ import EditMemory from "./components/memories/EditMemory.tsx";
 
 
 function App() {
-    const {isLogin, isAdmin, user} = useAppSelector(state => state.account);
+    const {isLogin, isAdmin} = useAppSelector(state => state.account);
 
     return (
         <>
