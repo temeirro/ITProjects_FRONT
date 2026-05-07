@@ -12,6 +12,7 @@ import {IImageItem} from "../interfaces/auth.ts";
 import axios from "axios";
 import {APP_ENV} from "../../env";
 import {useAppSelector} from "../../hooks/redux";
+import posthog from 'posthog-js';
 
 export default function AddMemory() {
     const {isLogin, isAdmin, user} = useAppSelector(state => state.account);
@@ -75,9 +76,19 @@ export default function AddMemory() {
         });
 
 
-            const response = await axios.post(`${baseUrl}/api/Posts/Create`, formData);
-            navigator(-1);
+        const response = await axios.post(`${baseUrl}/api/Posts/Create`, formData);
+        
+        // --- ДОДАЄМО POSTHOG ТУТ ---
+        posthog.capture('memory_created', {
+              priority: 'high', 
+              category: 'memory',
+             is_authenticated: true 
+        });
+        // ---------------------------
+
+        navigator(-1);
     };
+
 
     const beforeUpload = (file: File) => {
         const isImage = /^image\/\w+/.test(file.type);

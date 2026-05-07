@@ -13,6 +13,7 @@ import {
     TableColumn, TableBody, TableRow, TableCell, Tabs, Tab, CardBody, CardHeader, Tooltip
 } from "@nextui-org/react";
 import {APP_ENV} from "../../env";
+import posthog from 'posthog-js';
 
 import {useEffect, useState} from "react";
 
@@ -69,6 +70,11 @@ export default function BoardPage() {
                 axios.delete(`${baseUrl}/api/Posts/${postId}`)
                     .then(() => {
                         // Successfully deleted the post
+                        posthog.capture('memory_deleted', { // Змінили назву події ось тут
+                            priority: 'high', 
+                            category: 'memory',
+                            is_authenticated: true 
+                        });
                         setPosts(currentPosts => currentPosts.filter(post => post.id !== postId));
                         // Optionally, display a success message
                     })
