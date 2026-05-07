@@ -10,7 +10,18 @@ export default function DefaultFooter(): JSX.Element {
                 </span>
                 <ul className="flex flex-wrap items-center mt-3 text-sm font-medium text-gray-500 dark:text-gray-400 sm:mt-0">
                     <li>
-                        <a href="#" className="hover:underline me-4 md:me-6">About</a>
+                        <a
+                            href="#"
+                            className="hover:underline me-4 md:me-6"
+                            onClick={(e) => {
+                                e.preventDefault(); // Зупиняємо перехід за посиланням
+
+                                // Генеруємо помилку для Sentry 
+                                throw new Error("Sentry Test: About link clicked but something went wrong!");
+                            }}
+                        >
+                            About
+                        </a>
                     </li>
                     <li>
                         <a href="#" className="hover:underline me-4 md:me-6">Privacy Policy</a>
@@ -23,11 +34,10 @@ export default function DefaultFooter(): JSX.Element {
                     </li>
                     <li className="ms-4">
                         <span
-                            className={`px-2 py-1 rounded text-xs font-bold border ${
-                                isProduction
+                            className={`px-2 py-1 rounded text-xs font-bold border ${isProduction
                                     ? "bg-green-100 text-green-700 border-green-400"
                                     : "bg-yellow-100 text-yellow-700 border-yellow-400"
-                            }`}
+                                }`}
                         >
                             {appStatus}
                         </span>

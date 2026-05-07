@@ -1,38 +1,42 @@
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
 
-  // Налаштування Vitest
+  // 1. Налаштування проксі для обходу блокувальників (Крок 4)
+  server: {
+    proxy: {
+      // Перенаправляємо запити з /ingest на сервери PostHog
+      '/ingest': {
+        target: 'https://eu.i.posthog.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/ingest/, '')
+      }
+    }
+  },
+
+  // 2. Налаштування Vitest
   test: {
-    // Використовуємо jsdom — він емулює браузер під час тестів
-    // щоб React-компоненти могли рендеритись без реального браузера
+    // Використовуємо jsdom для емуляції браузера в тестах
     environment: 'jsdom',
 
     // Підключаємо файл налаштувань перед кожним тестом
     setupFiles: ['./src/test/setup.ts'],
 
-    // Дозволяє писати describe/it/expect без імпортів (як у Jest)
+    // Дозволяє писати describe/it/expect без імпортів
     globals: true,
 
     // Налаштування звіту покриття коду
     coverage: {
-      // v8 — це вбудований інструмент покриття від Node.js
       provider: 'v8',
-
-      // Які папки аналізувати
       include: ['src/**/*.{ts,tsx}'],
-
-      // Що виключити з аналізу
       exclude: [
-        'src/main.tsx',       // точка входу — не тестується
-        'src/**/*.d.ts',      // файли типів TypeScript
-        'src/test/**',        // сама папка з тестами
+        'src/main.tsx',
+        'src/**/*.d.ts',
+        'src/test/**',
       ],
-
-      // Формати звіту: текст у консолі + HTML-звіт у папці coverage/
       reporter: ['text', 'html'],
     },
   },

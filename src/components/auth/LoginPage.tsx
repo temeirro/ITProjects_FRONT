@@ -1,15 +1,16 @@
-import {Card, CardFooter, Input, Link, Image, Divider} from "@nextui-org/react";
-import {useState} from "react";
-import {TypeAnimation} from 'react-type-animation';
-import {EyeSlashFilledIcon} from "../../iconsNextUI/EyeSlashFilledIcon.tsx";
-import {EyeFilledIcon} from "../../iconsNextUI/EyeFilledIcon.tsx";
-import {UserIcon} from "../../iconsNextUI/UserIcon.tsx";
-import {useNavigate} from "react-router-dom";
-import {Button, Form} from "antd";
-import {ILogin, ILoginResult} from "../interfaces/auth.ts";
-import {APP_ENV} from "../../env";
-import {useAppDispatch} from "../../hooks/redux";
-import {login} from "../store/accounts/accounts.actions.ts";
+import { Card, CardFooter, Input, Link, Image, Divider } from "@nextui-org/react";
+import { useState } from "react";
+import { TypeAnimation } from 'react-type-animation';
+import { EyeSlashFilledIcon } from "../../iconsNextUI/EyeSlashFilledIcon.tsx";
+import { EyeFilledIcon } from "../../iconsNextUI/EyeFilledIcon.tsx";
+import { UserIcon } from "../../iconsNextUI/UserIcon.tsx";
+import { useNavigate } from "react-router-dom";
+import { Button, Form } from "antd";
+import { ILogin, ILoginResult } from "../interfaces/auth.ts";
+import { APP_ENV } from "../../env";
+import { useAppDispatch } from "../../hooks/redux";
+import { login } from "../store/accounts/accounts.actions.ts";
+import * as Sentry from "@sentry/react";
 
 export default function LoginPage() {
     const baseUrl = APP_ENV.BASE_URL;
@@ -25,16 +26,30 @@ export default function LoginPage() {
 
     const onFinish = async (values: ILogin) => {
         try {
-            // const resp = await axios.post<ILoginResult>(`${baseUrl}/api/Accounts/Login`, values);
+            // Чекаємо завершення логіну
+            const resultAction = await dispatch(login(values));
 
-            const response = await dispatch(login(values));
+            // Перевіряємо, чи логін пройшов успішно (unwrap дозволяє зловити помилку в catch)
+            // @ts-ignore
+            const user = resultAction.payload;
+
+            if (user) {
+                // Встановлюємо контекст користувача в Sentry
+                Sentry.setUser({
+                    id: user.Id || user.id,
+                    email: user.Email || user.email,
+                    username: user.FirstName || user.firstName,
+                });
+            }
+
             navigator("/");
 
         } catch (ex) {
+            // Якщо сталася технічна помилка, фіксуємо її в Sentry 
+            Sentry.captureException(ex);
             console.error('Error during login:', ex);
         }
     }
-
     return (
 
         <div className={"bg-pink-100 font-serif min-h-screen"}>
@@ -75,7 +90,7 @@ export default function LoginPage() {
                             />
                         </div>
 
-                        <Divider className="my-4"/>
+                        <Divider className="my-4" />
 
                     </div>
 
@@ -88,11 +103,11 @@ export default function LoginPage() {
                                 <div className="mt-2">
                                     <Form.Item name={"username"}>
                                         <Input type="username"
-                                               placeholder="enter ur username"
-                                               startContent={
-                                                   <UserIcon
-                                                       className="text-2xl text-default-400 pointer-events-none flex-shrink-0"/>
-                                               }
+                                            placeholder="enter ur username"
+                                            startContent={
+                                                <UserIcon
+                                                    className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                                            }
                                         />
                                     </Form.Item>
                                 </div>
@@ -101,12 +116,12 @@ export default function LoginPage() {
                             <div>
                                 <div className="flex items-center justify-between">
                                     <label htmlFor="password"
-                                           className="block text-sm font-medium leading-6 text-gray-900">
+                                        className="block text-sm font-medium leading-6 text-gray-900">
                                         password
                                     </label>
                                     <div className="text-sm">
                                         <a href="#"
-                                           className="font-semibold underline text-yellow-500 hover:text-pink-300">
+                                            className="font-semibold underline text-yellow-500 hover:text-pink-300">
                                             forgot password?
                                         </a>
                                     </div>
@@ -117,13 +132,13 @@ export default function LoginPage() {
                                             label="enter ur pass"
                                             endContent={
                                                 <button className="focus:outline-none" type="button"
-                                                        onClick={toggleVisibility}>
+                                                    onClick={toggleVisibility}>
                                                     {isVisible ? (
                                                         <EyeSlashFilledIcon
-                                                            className="text-2xl text-default-400 pointer-events-none"/>
+                                                            className="text-2xl text-default-400 pointer-events-none" />
                                                     ) : (
                                                         <EyeFilledIcon
-                                                            className="text-2xl text-default-400 pointer-events-none"/>
+                                                            className="text-2xl text-default-400 pointer-events-none" />
                                                     )}
                                                 </button>
                                             }
@@ -135,8 +150,8 @@ export default function LoginPage() {
 
                             <div>
                                 <Button htmlType="submit"
-                                        color="default"
-                                        className="flex h-10 items-center w-full justify-center rounded-md bg-red-300 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
+                                    color="default"
+                                    className="flex h-10 items-center w-full justify-center rounded-md bg-red-300 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-red-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-300"
                                 >
                                     Sign in
                                 </Button>
@@ -156,7 +171,7 @@ export default function LoginPage() {
                                 start now
                             </Button>
                         </p>
-                        <Divider className="my-4"/>
+                        <Divider className="my-4" />
 
                         <div
                             className="text-center  flex justify-center mt-5 transform scale-100 hover:scale-110 transition-transform duration-300">
@@ -176,7 +191,7 @@ export default function LoginPage() {
                                     className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
                                     <p className="text-tiny text-white/80">or u can dive into other`s memories</p>
                                     <Button onClick={handleTake} className="text-tiny text-white bg-black/20"
-                                            variant="flat" color="default" radius="lg" size="sm">
+                                        variant="flat" color="default" radius="lg" size="sm">
                                         take me there
                                     </Button>
                                 </CardFooter>

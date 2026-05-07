@@ -12,48 +12,57 @@ import {
     TableHeader,
     TableColumn, TableBody, TableRow, TableCell, Tabs, Tab, CardBody, CardHeader, Tooltip
 } from "@nextui-org/react";
-import {APP_ENV} from "../../env";
+import { APP_ENV } from "../../env";
 import posthog from 'posthog-js';
 
-import {useEffect, useState} from "react";
+import { useEffect, useState } from "react";
 
 import { TypeAnimation } from 'react-type-animation';
-import {useNavigate} from "react-router-dom";
-import {useAppSelector} from "../../hooks/redux";
-import {useParams} from "react-router-dom";
-import {HeartIcon} from "../../iconsNextUI/HeartIcon.tsx";
-import {PenIcon} from "../../iconsNextUI/PenIcon.tsx";
-import {TrashIcon} from "@heroicons/react/24/outline";
-import {EyeIcon} from "../../iconsNextUI/EyeIcon.tsx";
-import {Col, Modal, Row} from "antd";
+import { useNavigate } from "react-router-dom";
+import { useAppSelector } from "../../hooks/redux";
+import { useParams } from "react-router-dom";
+import { HeartIcon } from "../../iconsNextUI/HeartIcon.tsx";
+import { PenIcon } from "../../iconsNextUI/PenIcon.tsx";
+import { TrashIcon } from "@heroicons/react/24/outline";
+import { EyeIcon } from "../../iconsNextUI/EyeIcon.tsx";
+import { Col, Modal, Row } from "antd";
 import axios from "axios";
-import {PlusIcon} from "../../iconsNextUI/PlusIcon.tsx";
+import { PlusIcon } from "../../iconsNextUI/PlusIcon.tsx";
 
 export default function BoardPage() {
-    const {isLogin, isAdmin, user} = useAppSelector(state => state.account);
+    const { isLogin, isAdmin, user } = useAppSelector(state => state.account);
     const baseUrl = APP_ENV.BASE_URL;
     const [isVisible, setIsVisible] = useState(false);
     const [posts, setPosts] = useState([]);
     const [acc, setAcc] = useState([]);
     const navigator = useNavigate();
     const { Id } = useParams();
-
+    const [showUrgentFilter, setShowUrgentFilter] = useState(false); //
 
 
     useEffect(() => {
-        // Fetch users from your API
+        // Fetch posts from your API
         fetch(`${baseUrl}/api/Posts/Get/${Id}`)
             .then(response => response.json())
             .then(data => setPosts(data))
             .catch(error => console.error('Error fetching posts:', error));
 
-            // Fetch users from your API
-            fetch(`${baseUrl}/api/Accounts/Get/${Id}`)
-                .then(response => response.json())
-                .then(data => setAcc(data))
-                .catch(error => console.error('Error fetching acc:', error));
-    }, []);
+        // Fetch account info from your API
+        fetch(`${baseUrl}/api/Accounts/Get/${Id}`)
+            .then(response => response.json())
+            .then(data => setAcc(data))
+            .catch(error => console.error('Error fetching acc:', error));
 
+        // Ініціалізація Feature Flags
+        // Ця функція спрацює, як тільки PostHog завантажить прапорці з сервера
+        posthog.onFeatureFlags(() => {
+            if (posthog.isFeatureEnabled('show-urgent-filter')) {
+                setShowUrgentFilter(true);
+            } else {
+                setShowUrgentFilter(false);
+            }
+        });
+    }, [Id, baseUrl]); // Додано залежності для коректної роботи React
 
     console.log(acc);
 
@@ -71,9 +80,9 @@ export default function BoardPage() {
                     .then(() => {
                         // Successfully deleted the post
                         posthog.capture('memory_deleted', { // Змінили назву події ось тут
-                            priority: 'high', 
+                            priority: 'high',
                             category: 'memory',
-                            is_authenticated: true 
+                            is_authenticated: true
                         });
                         setPosts(currentPosts => currentPosts.filter(post => post.id !== postId));
                         // Optionally, display a success message
@@ -166,86 +175,94 @@ export default function BoardPage() {
                     </div>
                 </div>
             </div>
-<div className={"text-center mt-3"}>
-    <div className={"flex justify-center gap-5"}>
-        <User
-            name={acc.firstName}
-            description={acc.email}
-            avatarProps={{
-                src: `${baseUrl}/uploads/${acc.imagePath}`,
-                // Assuming your user object has an 'avatarUrl' property
-            }}
-        />
-        {user?.Id === Id ? (
-            <Button onClick={handleAdd} isIconOnly className={"bg-gradient-to-br from-red-300 to-yellow-300"} aria-label="Like">
-                <PlusIcon className={"size-6"}/>
-            </Button>
+            <div className={"text-center mt-3"}>
+                <div className={"flex justify-center gap-5"}>
+                    <User
+                        name={acc.firstName}
+                        description={acc.email}
+                        avatarProps={{
+                            src: `${baseUrl}/uploads/${acc.imagePath}`,
+                            // Assuming your user object has an 'avatarUrl' property
+                        }}
+                    />
+                    {user?.Id === Id ? (
+                        <Button onClick={handleAdd} isIconOnly className={"bg-gradient-to-br from-red-300 to-yellow-300"} aria-label="Like">
+                            <PlusIcon className={"size-6"} />
+                            {/* Відображення кнопки фільтру через Feature Flag */}
+                            {showUrgentFilter && (
+                                <Tooltip content="Експериментальна функція">
+                                    <Button isIconOnly className={"bg-gradient-to-br from-black-300 to-yellow-300"} aria-label="Like">
+                                        <HeartIcon className={"size-6"} />
+                                    </Button>
+                                </Tooltip>
+                            )}
+                        </Button>
 
-        ) : null}
+                    ) : null}
 
-    </div>
+                </div>
 
-</div>
+            </div>
 
             <div className="mt-5 border-t border-black flex gap-5 p-5  justify-center pb-16">
 
                 <Row gutter={[16, 16]} justify="center">
 
-                {posts.map((post) => (
-                    <Col >
+                    {posts.map((post) => (
+                        <Col >
 
-                    <Card className="py-4">
-                        <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
+                            <Card className="py-4">
+                                <CardHeader className="pb-0 pt-2 px-4 flex-col items-start">
 
-                            {post?.tags?.map((tag) => (
-                                <small className="text-default-500">{tag.tag.name}</small>
-                            ))}
-                            <h4 className="font-bold underline text-pink-300 text-large">{post.title}</h4>
-                        </CardHeader>
-                        <CardBody className="overflow-visible py-2">
-                            <Image
-                                alt="Card background"
-                                className="object-cover rounded-xl"
-                                src={`${baseUrl}/uploads/1200_${post.imagesPath[0]}`}
-                                width={270}
-                            />
-                            <p className={"mt-3 text-center"}>{post.description}</p>
-                        </CardBody>
-                        <CardFooter>
-                            <Chip  className="text-tiny bg-red-200 uppercase font-bold">{post.category.name}</Chip>
-                            <div className={"ml-auto flex gap-1"}>
-                                {user?.Id != Id ? (
-                                    <Button isIconOnly className={"bg-red-300"} aria-label="Like">
-                                        <HeartIcon />
-                                    </Button>
-                                ) : null}
+                                    {post?.tags?.map((tag) => (
+                                        <small className="text-default-500">{tag.tag.name}</small>
+                                    ))}
+                                    <h4 className="font-bold underline text-pink-300 text-large">{post.title}</h4>
+                                </CardHeader>
+                                <CardBody className="overflow-visible py-2">
+                                    <Image
+                                        alt="Card background"
+                                        className="object-cover rounded-xl"
+                                        src={`${baseUrl}/uploads/1200_${post.imagesPath[0]}`}
+                                        width={270}
+                                    />
+                                    <p className={"mt-3 text-center"}>{post.description}</p>
+                                </CardBody>
+                                <CardFooter>
+                                    <Chip className="text-tiny bg-red-200 uppercase font-bold">{post.category.name}</Chip>
+                                    <div className={"ml-auto flex gap-1"}>
+                                        {user?.Id != Id ? (
+                                            <Button isIconOnly className={"bg-red-300"} aria-label="Like">
+                                                <HeartIcon />
+                                            </Button>
+                                        ) : null}
 
-                                <Button onClick={() => handleShow(post.id)} isIconOnly className={"bg-yellow-300"} aria-label="Like">
-                                    <EyeIcon className={"size-6"}/>
-                                </Button>
-                                {user?.Id === Id ? (
-                                    <Button onClick={() => handleEdit(post.id)} isIconOnly className={"bg-blue-300"} aria-label="Like">
-                                        <PenIcon className={"size-8/12"} />
-                                    </Button>
+                                        <Button onClick={() => handleShow(post.id)} isIconOnly className={"bg-yellow-300"} aria-label="Like">
+                                            <EyeIcon className={"size-6"} />
+                                        </Button>
+                                        {user?.Id === Id ? (
+                                            <Button onClick={() => handleEdit(post.id)} isIconOnly className={"bg-blue-300"} aria-label="Like">
+                                                <PenIcon className={"size-8/12"} />
+                                            </Button>
 
-                                ) : null}
+                                        ) : null}
 
-                                {user?.Id === Id ? (
-                                    <Button onClick={() => handleDelete(post.id)} isIconOnly className={"bg-purple-300"} aria-label="Like">
-                                    <TrashIcon className={"size-8/12"} />
-                                    </Button>
+                                        {user?.Id === Id ? (
+                                            <Button onClick={() => handleDelete(post.id)} isIconOnly className={"bg-purple-300"} aria-label="Like">
+                                                <TrashIcon className={"size-8/12"} />
+                                            </Button>
 
-                                    ) : null}
-
-
-                            </div>
-
-                        </CardFooter>
-                    </Card>
-                    </Col>
+                                        ) : null}
 
 
-                ))}
+                                    </div>
+
+                                </CardFooter>
+                            </Card>
+                        </Col>
+
+
+                    ))}
                 </Row>
 
             </div>

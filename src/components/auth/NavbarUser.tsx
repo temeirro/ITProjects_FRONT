@@ -4,6 +4,7 @@ import {APP_ENV} from "../../env";
 import {login} from "../store/accounts/accounts.actions.ts";
 import {logout} from "../store/accounts/accounts.slice.ts";
 import {useNavigate} from "react-router-dom";
+import * as Sentry from "@sentry/react";
 
 export default function NavbarUser() {
     const {isLogin, isAdmin, user} = useAppSelector(state => state.account);
@@ -12,6 +13,7 @@ export default function NavbarUser() {
     const navigator = useNavigate();
     async function handleLogout() {
         await dispatch(logout());
+        Sentry.setUser(null);
         navigator("/");
     }
 
