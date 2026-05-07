@@ -1,0 +1,24 @@
+name: CI/CD Pipeline
+
+# Тригери для запуску пайплайну
+on:
+  # Запуск при push у гілки main та develop
+  push:
+    branches:
+      - main
+      - develop
+  # Запуск при створенні Pull Request
+  pull_request:
+    branches:
+      - main
+      - develop
+
+# Базова структура завдання (Job), щоб YAML-файл був валідним
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    steps:
+      # Крок 1: Отримання коду з репозиторію
+      - name: Checkout repository
+        uses: actions/checkout@v4
