@@ -36,7 +36,5 @@ jobs:
         run: npm run lint
 
       # 5. Запуск тестів
-      # Якщо у вашому проєкті ще немає налаштованих тестів, 
-      # можете закоментувати ці два рядки, щоб пайплайн не падав.
       - name: Run unit tests
-        run: npm run test # або npm run test:unit
+        run: npm run test:unit 

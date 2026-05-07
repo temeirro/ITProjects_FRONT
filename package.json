@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json,css}\"",
     "preview": "vite preview",
 
-    "test:unit": "vitest",
+    "test:unit": "vitest run src/test/logic.test.ts",
     "test:unit:ui": "vitest --ui",
     "test:unit:coverage": "vitest --coverage",
     "test:e2e": "playwright test",
