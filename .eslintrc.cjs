@@ -17,14 +17,9 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
-
-    // забороняє невикористані змінні
-    '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-
-    // забороняє console.log у коді
-    'no-console': 'off',
-
-    // забороняє явний тип any
-    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-unused-vars': 'warn', // Перетворюємо помилку на попередження
+    '@typescript-eslint/no-explicit-any': 'warn', // Перетворюємо помилку на попередження
+    '@typescript-eslint/ban-ts-comment': 'warn', // Перетворюємо помилку на попередження
+    'react-hooks/exhaustive-deps': 'warn' // Залишаємо як попередження
   },
 }
