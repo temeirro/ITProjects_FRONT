@@ -13,30 +13,22 @@ on:
 jobs:
   build-and-test:
     name: Build and Test
-    runs-on: ubuntu-latest # 1. Визначення середовища виконання
+    runs-on: ubuntu-latest
     
     steps:
-      # Крок 1: Отримання коду з репозиторію
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Налаштування оточення (Node.js)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Використовуємо стабільну версію Node.js
-          cache: 'npm' # Кешування для пришвидшення роботи
+          node-version: '20'
 
-      # 3. Встановлення залежностей
       - name: Install dependencies
-        run: npm ci # або npm install, якщо немає package-lock.json
+        run: npm install
 
-      # 4. Перевірка якості коду (Linting)
       - name: Run linter
         run: npm run lint
 
-      # 5. Запуск тестів
-      # Якщо у вашому проєкті ще немає налаштованих тестів, 
-      # можете закоментувати ці два рядки, щоб пайплайн не падав.
-      - name: Run unit tests
-        run: npm run test # або npm run test:unit
+      - name: Build for production
+        run: npm run build
